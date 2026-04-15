@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Metrics Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #0f172a; }
+
+        /* The Vibrant Gradient Base */
+        .bg-vibrant {
+            background: linear-gradient(-45deg, #4facfe, #00f2fe, #43e97b, #38f9d7);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Abstract Background Orbs */
+        .ambient-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px); 
+            z-index: -1;
+            animation: float 20s infinite ease-in-out alternate;
+            opacity: 0.6; 
+            pointer-events: none;
+        }
+        .orb-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: rgba(255, 0, 128, 0.7); animation-delay: 0s; }
+        .orb-2 { bottom: -20%; right: -10%; width: 60vw; height: 60vw; background: rgba(0, 204, 255, 0.7); animation-delay: -5s; }
+        .orb-3 { top: 40%; left: 40%; width: 45vw; height: 45vw; background: rgba(138, 43, 226, 0.7); animation-delay: -10s; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 50px) scale(1.1); }
+        }
+
+        /* The "Reality Show Buzzer" Pulses */
+        .pulse-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 5;
+            pointer-events: none;
+            opacity: 0;
+        }
+        
+        .rhythm-healthy { animation: breath-1 3s ease-in-out forwards; background: #10B981; }
+        @keyframes breath-1 { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
+
+        .rhythm-moderate { animation: breath-2 3s ease-in-out forwards; background: #F59E0B; }
+        @keyframes breath-2 { 0% { opacity: 0; } 15% { opacity: 1; } 30% { opacity: 0; } 45% { opacity: 1; } 100% { opacity: 0; } }
+
+        .rhythm-alert-red { animation: breath-3 3.5s ease-in-out forwards; background: #EF4444; }
+        .rhythm-alert-blue { animation: breath-3 3.5s ease-in-out forwards; background: #3B82F6; }
+        @keyframes breath-3 { 0% { opacity: 0; } 10% { opacity: 1; } 25% { opacity: 0; } 40% { opacity: 1; } 55% { opacity: 0; } 70% { opacity: 1; } 100% { opacity: 0; } }
+
+        /* Premium Glassmorphism */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-card-hover:hover {
+            transform: scale(1.02);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Highly Visible Inputs */
+        .input-premium {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 2px solid rgba(148, 163, 184, 0.4); /* Crisp, visible border */
+            background: #ffffff; /* Solid white background */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.03), inset 0 2px 4px rgba(0,0,0,0.04); /* Outer pop + inner depth */
+            font-weight: 500;
+            color: #1e293b;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .input-premium::placeholder {
+            color: #94a3b8; /* Clearer placeholder text */
+        }
+        .input-premium:focus {
+            border-color: #3b82f6; /* Strong blue border on focus */
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+            outline: none;
+        }
+
+        /* Tooltip Arrows */
+        .tooltip-arrow {
+            position: absolute; bottom: -6px; right: 24px; width: 12px; height: 12px;
+            background: rgba(255, 255, 255, 0.95); transform: rotate(45deg);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5); border-right: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .tooltip-arrow-up {
+            position: absolute; top: -6px; left: 50%; width: 12px; height: 12px;
+            background: rgba(255, 255, 255, 0.95); transform: translateX(-50%) rotate(45deg);
+            border-top: 1px solid rgba(255, 255, 255, 0.5); border-left: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* Visual Progress Bars */
+        .progress-track { width: 100%; height: 14px; background: #D1D5DB; border-radius: 7px; position: relative; box-shadow: inset 0 2px 4px rgba(0,0,0,0.15); }
+        .progress-fill { height: 100%; border-radius: 7px; transition: width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; }
+        .target-zone { position: absolute; top: 0; height: 100%; background: rgba(59, 130, 246, 0.4); border-left: 3px solid #3B82F6; border-right: 3px solid #3B82F6; border-radius: 7px; transition: all 1s ease-in-out; }
+
+        /* The Map Pins */
+        .marker-pin { position: absolute; top: 50%; transform: translate(-50%, -50%); transition: left 1.5s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 20; display: flex; flex-direction: column; align-items: center; }
+        .marker-label { position: absolute; bottom: 12px; background: #1F2937; color: #fff; font-size: 0.65rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; letter-spacing: 0.05em; box-shadow: 0 4px 6px rgba(0,0,0,0.3); white-space: nowrap; }
+        .marker-label::after { content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); border-width: 5px; border-style: solid; border-color: #1F2937 transparent transparent transparent; }
+        .marker-dot { width: 16px; height: 16px; background: #fff; border: 4px solid #1F2937; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+
+        .corner-trigger { transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); backdrop-filter: blur(8px); }
+        .stagger-item { opacity: 0; transform: translateY(30px); transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .stagger-item.show { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body class="text-gray-800 overflow-x-hidden flex flex-col justify-between min-h-screen">
+    
+    <div class="bg-vibrant"></div>
+    <div class="orb-1 ambient-orb"></div>
+    <div class="orb-2 ambient-orb"></div>
+    <div class="orb-3 ambient-orb"></div>
+
+    <div id="pulseOverlay" class="pulse-overlay"></div>
+
+    <div class="container mx-auto px-4 py-12 relative z-10">
+        
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-extrabold text-white mb-4 drop-shadow-lg tracking-tight">Health Metrics Calculator</h1>
+            <p class="text-xl text-white/90 max-w-2xl mx-auto font-medium drop-shadow-md">Start with BMI. Understand your body better.</p>
+        </div>
+
+        <div class="max-w-3xl mx-auto glass-card rounded-3xl overflow-hidden mb-12 relative z-20">
+            <div class="p-8 sm:p-10">
+                <form id="bmiForm">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="relative">
+                            <div class="flex justify-between items-end mb-2">
+                                <label class="block text-sm font-bold text-gray-700 tracking-wide uppercase">Height</label>
+                                <select id="heightUnit" class="text-xs font-bold bg-transparent text-blue-600 outline-none cursor-pointer border-b-2 border-blue-600 hover:text-blue-800 transition-colors">
+                                    <option value="cm">cm ▼</option>
+                                    <option value="m">m ▼</option>
+                                    <option value="mm">mm ▼</option>
+                                    <option value="in">in ▼</option>
+                                    <option value="ft/in">ft/in ▼</option>
+                                </select>
+                            </div>
+                            <div id="heightInputSingle" class="block">
+                                <input type="number" id="heightSingleVal" class="input-premium" placeholder="e.g. 175" min="0" step="any">
+                            </div>
+                            <div id="heightInputDual" class="hidden grid-cols-2 gap-3">
+                                <input type="number" id="heightFtVal" class="input-premium" placeholder="ft (e.g. 5)" min="0" step="any">
+                                <input type="number" id="heightInVal" class="input-premium" placeholder="in (e.g. 9)" min="0" step="any">
+                            </div>
+                        </div>
+
+                        <div class="relative">
+                            <div class="flex justify-between items-end mb-2">
+                                <label class="block text-sm font-bold text-gray-700 tracking-wide uppercase">Weight</label>
+                                <select id="weightUnit" class="text-xs font-bold bg-transparent text-blue-600 outline-none cursor-pointer border-b-2 border-blue-600 hover:text-blue-800 transition-colors">
+                                    <option value="kg">kg ▼</option>
+                                    <option value="g">grams ▼</option>
+                                    <option value="lbs">lbs ▼</option>
+                                    <option value="oz">oz ▼</option>
+                                </select>
+                            </div>
+                            <input type="number" id="weightSingleVal" class="input-premium" placeholder="e.g. 70" min="0" step="any">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2 tracking-wide uppercase">Age</label>
+                            <input type="number" id="age" class="input-premium" placeholder="e.g. 25" min="15" max="100" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2 tracking-wide uppercase">Gender</label>
+                            <select id="gender" class="input-premium cursor-pointer">
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2 tracking-wide uppercase">Activity Level</label>
+                            <select id="activity" class="input-premium cursor-pointer text-sm">
+                                <option value="1.2">Sedentary (Office job)</option>
+                                <option value="1.375">Light (Exercise 1-3 days)</option>
+                                <option value="1.55" selected>Moderate (Exercise 3-5 days)</option>
+                                <option value="1.725">Active (Hard exercise 6+ days)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button id="calcBtn" type="submit" class="w-full bg-gradient-to-r from-gray-900 to-gray-800 hover:from-black hover:to-gray-900 text-white py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 transform active:scale-95 shadow-xl flex justify-center items-center gap-3">
+                        <i class="fas fa-bolt text-yellow-400"></i> Calculate Results
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div id="resultsDashboard" class="hidden max-w-5xl mx-auto">
+            
+            <div class="glass-card rounded-3xl p-10 mb-8 stagger-item flex flex-col items-center relative overflow-visible z-10">
+                <div class="relative group/title inline-block flex flex-col items-center">
+                    <h2 class="text-2xl font-extrabold text-gray-800 mb-1 uppercase tracking-widest text-center cursor-help flex items-center justify-center gap-2">
+                        Body Mass Index <i class="fas fa-info-circle text-gray-400 text-lg hover:text-blue-500 transition-colors"></i>
+                    </h2>
+                    
+                    <p class="text-xs font-mono bg-gray-100 text-gray-600 py-1 px-4 rounded-full mt-1 mb-2 border border-gray-200 shadow-inner">BMI = Weight (kg) ÷ Height (m)²</p>
+
+                    <div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-72 p-4 bg-white/95 backdrop-blur-xl border border-gray-100 rounded-2xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-300 z-50">
+                        <p class="text-sm text-gray-700 font-medium leading-relaxed">A standard ratio of weight to height used to categorize health status.</p>
+                        <div class="tooltip-arrow-up"></div>
+                    </div>
+                </div>
+                
+                <p class="text-gray-500 font-medium mb-8">Healthy range is 18.5 - 24.9</p>
+                
+                <div class="w-full max-w-2xl relative">
+                    <svg viewBox="0 0 200 115" class="w-full h-auto overflow-visible" id="meterSvg">
+                        <circle cx="100" cy="100" r="80" fill="none" stroke="#3B82F6" stroke-width="16" stroke-dasharray="62.83 500" transform="rotate(180 100 100)" />
+                        <circle cx="100" cy="100" r="80" fill="none" stroke="#10B981" stroke-width="16" stroke-dasharray="90.75 500" transform="rotate(225 100 100)" />
+                        <circle cx="100" cy="100" r="80" fill="none" stroke="#F59E0B" stroke-width="16" stroke-dasharray="48.87 500" transform="rotate(290 100 100)" />
+                        <circle cx="100" cy="100" r="80" fill="none" stroke="#EF4444" stroke-width="16" stroke-dasharray="48.87 500" transform="rotate(325 100 100)" />
+                        
+                        <text x="5" y="105" font-size="6" font-weight="bold" fill="#6B7280">15</text>
+                        <text x="32" y="38" font-size="6" font-weight="bold" fill="#6B7280">18.5</text>
+                        <text x="127" y="18" font-size="6" font-weight="bold" fill="#6B7280">25</text>
+                        <text x="171" y="55" font-size="6" font-weight="bold" fill="#6B7280">30</text>
+                        <text x="195" y="105" font-size="6" font-weight="bold" fill="#6B7280">40</text>
+
+                        <g id="svgNeedle" transform="rotate(-90 100 100)">
+                            <polygon points="97,100 103,100 100,25" fill="#1e293b" />
+                            <circle cx="100" cy="100" r="5" fill="#1e293b" />
+                            <circle cx="100" cy="100" r="2" fill="white" />
+                        </g>
+                    </svg>
+
+                    <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-6 text-center w-full flex flex-col items-center">
+                        <span id="bmiValueDisplay" class="text-7xl font-black text-gray-900 block drop-shadow-sm tracking-tighter bg-white/50 px-8 rounded-full backdrop-blur-sm">0.0</span>
+                        <div class="mt-4 flex flex-col items-center gap-2">
+                            <span id="categoryBadge" class="px-6 py-2 rounded-full text-md font-bold text-white shadow-lg uppercase tracking-widest border-2 border-white">Awaiting</span>
+                            <span id="riskText" class="text-md font-bold bg-white/80 px-4 py-1 rounded-full shadow-sm"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 mt-12 z-30 relative">
+                
+                <div class="glass-card glass-card-hover rounded-3xl p-8 stagger-item flex flex-col relative overflow-visible group/card">
+                    <div class="corner-trigger absolute top-0 right-0 w-16 h-16 bg-blue-500/20 rounded-bl-[40px] rounded-tr-3xl cursor-help flex items-start justify-end p-4 z-40 hover:bg-blue-500 hover:w-20 hover:h-20 group/corner border-b border-l border-blue-500/30">
+                        <i class="fas fa-info text-blue-700 group-hover/corner:text-white transition-colors"></i>
+                        <div class="absolute bottom-full right-0 mb-3 w-72 p-5 bg-white/95 backdrop-blur-xl border border-gray-100 rounded-2xl shadow-2xl opacity-0 invisible group-hover/corner:opacity-100 group-hover/corner:visible transition-all duration-300 cursor-default">
+                            <p class="text-sm text-gray-700 font-medium leading-relaxed">Your personal target weight zone. The blue highlighted section is your landing pad, and the pin shows exactly where you currently sit.</p>
+                            <div class="tooltip-arrow"></div>
+                        </div>
+                    </div>
+
+                    <div class="relative z-10 flex-1 flex flex-col">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shadow-sm"><i class="fas fa-bullseye text-xl"></i></div>
+                            <p class="text-sm text-gray-500 font-extrabold uppercase tracking-widest">Healthy Weight Zone</p>
+                        </div>
+                        <p class="text-4xl font-black text-gray-900 mb-2" id="idealWeightVal">0 kg</p>
+                        
+                        <p class="text-sm text-gray-700 font-medium leading-relaxed mb-6" id="weightConversational">Calculating your exact weight position...</p>
+                        
+                        <div class="mt-auto pt-4">
+                            <div class="flex justify-between text-xs text-gray-500 font-extrabold uppercase mb-2 px-1">
+                                <span>Under</span>
+                                <span class="text-blue-600">Target Zone</span>
+                                <span>Over</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="target-zone" id="idealZoneHighlight" style="left: 25%; width: 50%;"></div>
+                                <div class="marker-pin" id="currentWeightMarker" style="left: 0%;">
+                                    <div class="marker-label">YOU</div>
+                                    <div class="marker-dot"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card glass-card-hover rounded-3xl p-8 stagger-item flex flex-col relative overflow-visible group/card">
+                    <div class="corner-trigger absolute top-0 right-0 w-16 h-16 bg-purple-500/20 rounded-bl-[40px] rounded-tr-3xl cursor-help flex items-start justify-end p-4 z-40 hover:bg-purple-500 hover:w-20 hover:h-20 group/corner border-b border-l border-purple-500/30">
+                        <i class="fas fa-info text-purple-700 group-hover/corner:text-white transition-colors"></i>
+                        <div class="absolute bottom-full right-0 mb-3 w-72 p-5 bg-white/95 backdrop-blur-xl border border-gray-100 rounded-2xl shadow-2xl opacity-0 invisible group-hover/corner:opacity-100 group-hover/corner:visible transition-all duration-300 cursor-default">
+                            <p class="text-sm text-gray-700 font-medium leading-relaxed">Estimated fat percentage using the scientific Deurenberg formula. The bar visually shows your level from essential (low) to elevated (high).</p>
+                            <div class="tooltip-arrow"></div>
+                        </div>
+                    </div>
+
+                    <div class="relative z-10 flex-1 flex flex-col">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 shadow-sm"><i class="fas fa-percentage text-xl"></i></div>
+                            <p class="text-sm text-gray-500 font-extrabold uppercase tracking-widest">Body Fat Level</p>
+                        </div>
+                        <p class="text-4xl font-black text-gray-900 mb-2"><span id="bodyFatVal">0</span>%</p>
+                        
+                        <p class="text-sm text-gray-700 font-medium leading-relaxed mb-6" id="fatConversational">Estimating your body composition...</p>
+                        
+                        <div class="mt-auto pt-4">
+                            <div class="flex justify-between text-xs text-gray-500 font-extrabold uppercase mb-2 px-1">
+                                <span>Lean</span>
+                                <span>Elevated</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill bg-gradient-to-r from-purple-400 to-purple-600 shadow-md" id="fatBarFill" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card glass-card-hover rounded-3xl p-8 stagger-item flex flex-col relative overflow-visible group/card">
+                    <div class="corner-trigger absolute top-0 right-0 w-16 h-16 bg-orange-500/20 rounded-bl-[40px] rounded-tr-3xl cursor-help flex items-start justify-end p-4 z-40 hover:bg-orange-500 hover:w-20 hover:h-20 group/corner border-b border-l border-orange-500/30">
+                        <i class="fas fa-info text-orange-700 group-hover/corner:text-white transition-colors"></i>
+                        <div class="absolute bottom-full right-0 mb-3 w-72 p-5 bg-white/95 backdrop-blur-xl border border-gray-100 rounded-2xl shadow-2xl opacity-0 invisible group-hover/corner:opacity-100 group-hover/corner:visible transition-all duration-300 cursor-default">
+                            <p class="text-sm text-gray-700 font-medium leading-relaxed">The exact calories your body burns just keeping your organs alive. Your baseline "staying in bed all day" energy.</p>
+                            <div class="tooltip-arrow"></div>
+                        </div>
+                    </div>
+
+                    <div class="relative z-10 flex-1 flex flex-col">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shadow-sm"><i class="fas fa-bed text-xl"></i></div>
+                            <p class="text-sm text-gray-500 font-extrabold uppercase tracking-widest">Resting Burn</p>
+                        </div>
+                        <p class="text-4xl font-black text-gray-900 mb-2"><span id="bmrVal">0</span> <span class="text-xl font-bold text-gray-500">kcal</span></p>
+                        
+                        <p class="text-sm text-gray-700 font-medium leading-relaxed mb-6" id="bmrConversational">Calculating your baseline energy needs...</p>
+                        
+                        <div class="mt-auto pt-4">
+                            <div class="flex justify-between text-xs text-gray-500 font-extrabold uppercase mb-2 px-1">
+                                <span class="text-orange-600">Resting Energy</span>
+                                <span>Total Energy</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill bg-orange-500 shadow-md" id="bmrBarFill" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card glass-card-hover rounded-3xl p-8 stagger-item flex flex-col relative overflow-visible group/card">
+                    <div class="corner-trigger absolute top-0 right-0 w-16 h-16 bg-green-500/20 rounded-bl-[40px] rounded-tr-3xl cursor-help flex items-start justify-end p-4 z-40 hover:bg-green-500 hover:w-20 hover:h-20 group/corner border-b border-l border-green-500/30">
+                        <i class="fas fa-info text-green-700 group-hover/corner:text-white transition-colors"></i>
+                        <div class="absolute bottom-full right-0 mb-3 w-72 p-5 bg-white/95 backdrop-blur-xl border border-gray-100 rounded-2xl shadow-2xl opacity-0 invisible group-hover/corner:opacity-100 group-hover/corner:visible transition-all duration-300 cursor-default">
+                            <p class="text-sm text-gray-700 font-medium leading-relaxed">Total calories burned in a day, including walking and general activity. The pin shows your specific recommended calorie target.</p>
+                            <div class="tooltip-arrow"></div>
+                        </div>
+                    </div>
+
+                    <div class="relative z-10 flex-1 flex flex-col">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600 shadow-sm"><i class="fas fa-fire-alt text-xl"></i></div>
+                            <p class="text-sm text-gray-500 font-extrabold uppercase tracking-widest">Maintenance Burn</p>
+                        </div>
+                        <p class="text-4xl font-black text-gray-900 mb-2"><span id="tdeeVal">0</span> <span class="text-xl font-bold text-gray-500">kcal</span></p>
+                        
+                        <p class="text-sm text-gray-700 font-medium leading-relaxed mb-6" id="tdeeConversational">Calculating your total daily burn...</p>
+                        
+                        <div class="mt-auto pt-4">
+                            <div class="flex justify-between text-xs text-gray-500 font-extrabold uppercase mb-2 px-1">
+                                <span>Deficit</span>
+                                <span class="text-green-600">Maintain</span>
+                                <span>Surplus</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="marker-pin" id="calorieMarker" style="left: 50%;">
+                                    <div class="marker-label">TARGET</div>
+                                    <div class="marker-dot"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-3xl p-6 md:p-8 stagger-item mb-6 border-l-4 border-yellow-400 z-10 relative">
+                <div class="flex flex-col md:flex-row items-center gap-6">
+                    <div class="w-16 h-16 shrink-0 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600 text-2xl shadow-sm">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-bold text-gray-900 mb-1">Did You Know?</h4>
+                        <p class="text-gray-700 leading-relaxed font-medium" id="triviaContent">Calculating statistical context...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-3xl p-8 sm:p-12 stagger-item mb-6 border-t-4 border-indigo-500 z-10 relative">
+                <h3 class="text-3xl font-black text-gray-900 mb-8 flex items-center gap-4 border-b border-gray-200 pb-4">
+                    <i class="fas fa-route text-indigo-600"></i> What You Can Do
+                </h3>
+                <div id="wisdomContent" class="text-gray-700 space-y-6 text-lg leading-relaxed">
+                    </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-6 stagger-item mb-4 border-l-4 border-gray-400 opacity-90 z-10 relative">
+                <div class="flex items-start gap-4">
+                    <i class="fas fa-exclamation-circle text-gray-500 text-xl mt-1"></i>
+                    <p class="text-sm text-gray-600 leading-relaxed">
+                        <strong>Accuracy Disclaimer:</strong> BMI is a general screening tool that calculates mass relative to height. It does not distinguish between excess fat, muscle mass, or bone density. Athletes, bodybuilders, pregnant women, and the elderly may receive misleading classifications. Please use this dashboard as a baseline and consult a medical professional for a complete health evaluation.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer class="w-full text-center py-8 mt-auto z-10 opacity-80 relative">
+        <p class="text-white text-sm font-semibold tracking-wider">
+            Project by Aayush Dattatray Kadam
+        </p>
+    </footer>
+
+    <script>
+        // --- 1. UI Dropdown Handlers ---
+        const heightUnit = document.getElementById('heightUnit');
+        const heightSingle = document.getElementById('heightInputSingle');
+        const heightDual = document.getElementById('heightInputDual');
+        const heightSingleVal = document.getElementById('heightSingleVal');
+        const weightUnit = document.getElementById('weightUnit');
+        const weightSingleVal = document.getElementById('weightSingleVal');
+
+        heightUnit.addEventListener('change', (e) => {
+            if(e.target.value === 'ft/in') {
+                heightSingle.classList.add('hidden'); heightSingle.classList.remove('block');
+                heightDual.classList.remove('hidden'); heightDual.classList.add('grid');
+            } else {
+                heightSingle.classList.remove('hidden'); heightSingle.classList.add('block');
+                heightDual.classList.add('hidden'); heightDual.classList.remove('grid');
+                if(e.target.value === 'cm') heightSingleVal.placeholder = "e.g. 175";
+                if(e.target.value === 'm') heightSingleVal.placeholder = "e.g. 1.75";
+                if(e.target.value === 'mm') heightSingleVal.placeholder = "e.g. 1750";
+                if(e.target.value === 'in') heightSingleVal.placeholder = "e.g. 69";
+            }
+        });
+
+        weightUnit.addEventListener('change', (e) => {
+            if(e.target.value === 'kg') weightSingleVal.placeholder = "e.g. 70";
+            if(e.target.value === 'g') weightSingleVal.placeholder = "e.g. 70000";
+            if(e.target.value === 'lbs') weightSingleVal.placeholder = "e.g. 155";
+            if(e.target.value === 'oz') weightSingleVal.placeholder = "e.g. 2469";
+        });
+
+        // --- 2. Utility Functions ---
+        function animateValue(id, start, end, duration, isFloat = false) {
+            let range = end - start;
+            let startTime = null;
+            const element = document.getElementById(id);
+            function step(timestamp) {
+                if (!startTime) startTime = timestamp;
+                let progress = timestamp - startTime;
+                let value = start + (range * (progress / duration));
+                element.textContent = isFloat ? value.toFixed(1) : Math.round(value);
+                if (progress < duration) requestAnimationFrame(step);
+                else element.textContent = isFloat ? end.toFixed(1) : end;
+            }
+            requestAnimationFrame(step);
+        }
+
+        // --- 3. Core Logic: Input Extraction ---
+        function getValidatedInputs() {
+            let heightCm, weightKg;
+            
+            if (heightUnit.value === 'ft/in') {
+                const ft = parseFloat(document.getElementById('heightFtVal').value) || 0;
+                const ins = parseFloat(document.getElementById('heightInVal').value) || 0;
+                if (ft > 0 || ins > 0) heightCm = ((ft * 12) + ins) * 2.54;
+            } else {
+                const val = parseFloat(heightSingleVal.value);
+                if (heightUnit.value === 'cm') heightCm = val;
+                if (heightUnit.value === 'm') heightCm = val * 100;
+                if (heightUnit.value === 'mm') heightCm = val / 10;
+                if (heightUnit.value === 'in') heightCm = val * 2.54;
+            }
+
+            const rawWeight = parseFloat(weightSingleVal.value);
+            if (weightUnit.value === 'kg') weightKg = rawWeight;
+            if (weightUnit.value === 'g') weightKg = rawWeight / 1000;
+            if (weightUnit.value === 'lbs') weightKg = rawWeight * 0.453592;
+            if (weightUnit.value === 'oz') weightKg = rawWeight * 0.0283495;
+
+            if (!heightCm || !weightKg || isNaN(heightCm) || isNaN(weightKg)) return null;
+
+            return {
+                heightCm,
+                weightKg,
+                age: parseInt(document.getElementById('age').value),
+                gender: document.getElementById('gender').value,
+                activityMultiplier: parseFloat(document.getElementById('activity').value)
+            };
+        }
+
+        // --- 4. Core Logic: Mathematics ---
+        function calculateMetrics(inputs) {
+            const heightM = inputs.heightCm / 100;
+            const bmi = inputs.weightKg / (heightM * heightM); 
+            
+            const bodyFat = (inputs.gender === 'male' 
+                ? (1.20 * bmi) + (0.23 * inputs.age) - 16.2 
+                : (1.20 * bmi) + (0.23 * inputs.age) - 5.4);
+            const clampedFat = Math.max(5, Math.min(50, bodyFat));
+
+            const bmr = Math.round(inputs.gender === 'male'
+                ? 88.362 + (13.397 * inputs.weightKg) + (4.799 * inputs.heightCm) - (5.677 * inputs.age)
+                : 447.593 + (9.247 * inputs.weightKg) + (3.098 * inputs.heightCm) - (4.330 * inputs.age));
+
+            const tdee = Math.round(bmr * inputs.activityMultiplier);
+
+            const minWeightKg = 18.5 * heightM * heightM;
+            const maxWeightKg = 24.9 * heightM * heightM;
+
+            // Gauge Math
+            const clampedBMI = Math.max(15, Math.min(40, bmi));
+            let gaugeDegrees;
+            if (clampedBMI < 18.5) gaugeDegrees = ((clampedBMI - 15) / 3.5) * 45;
+            else if (clampedBMI < 25) gaugeDegrees = 45 + ((clampedBMI - 18.5) / 6.5) * 65;
+            else if (clampedBMI < 30) gaugeDegrees = 110 + ((clampedBMI - 25) / 5) * 35;
+            else gaugeDegrees = 145 + ((clampedBMI - 30) / 10) * 35;
+
+            // Weight Bar Math
+            const barMin = minWeightKg - 15;
+            const barMax = maxWeightKg + 15;
+            const barRange = barMax - barMin;
+            const idealZoneStartPct = ((minWeightKg - barMin) / barRange) * 100;
+            const idealZoneWidthPct = ((maxWeightKg - minWeightKg) / barRange) * 100;
+            const currentWeightClamped = Math.max(barMin, Math.min(barMax, inputs.weightKg));
+            const currentWeightPct = ((currentWeightClamped - barMin) / barRange) * 100;
+
+            return { bmi, bodyFat: clampedFat, bmr, tdee, minWeightKg, maxWeightKg, gaugeDegrees, idealZoneStartPct, idealZoneWidthPct, currentWeightPct };
+        }
+
+        // --- 5. Core Logic: Content Generation ---
+        function generateDashboardContent(inputs, metrics) {
+            let weightDisplayStr, displayDiff, diffKg = 0, weeks = 0;
+
+            if (weightUnit.value === 'lbs' || weightUnit.value === 'oz') {
+                weightDisplayStr = `${Math.round(metrics.minWeightKg * 2.20462)} - ${Math.round(metrics.maxWeightKg * 2.20462)} lbs`;
+            } else if (weightUnit.value === 'g') {
+                weightDisplayStr = `${Math.round(metrics.minWeightKg * 1000)} - ${Math.round(metrics.maxWeightKg * 1000)} g`;
+            } else {
+                weightDisplayStr = `${Math.round(metrics.minWeightKg)} - ${Math.round(metrics.maxWeightKg)} kg`;
+            }
+
+            let weightConvText = "";
+            if (inputs.weightKg < metrics.minWeightKg) {
+                diffKg = metrics.minWeightKg - inputs.weightKg;
+                weeks = Math.ceil(diffKg / 0.5);
+                displayDiff = (weightUnit.value === 'lbs' || weightUnit.value === 'oz') ? `${(diffKg * 2.20462).toFixed(1)} lbs` : `${diffKg.toFixed(1)} kg`;
+                weightConvText = `You are currently <strong class="text-blue-600">${displayDiff}</strong> below your healthy zone. A safe timeline to reach this goal is about ${weeks} weeks.`;
+            } else if (inputs.weightKg > metrics.maxWeightKg) {
+                diffKg = inputs.weightKg - metrics.maxWeightKg;
+                weeks = Math.ceil(diffKg / 0.5); 
+                displayDiff = (weightUnit.value === 'lbs' || weightUnit.value === 'oz') ? `${(diffKg * 2.20462).toFixed(1)} lbs` : `${diffKg.toFixed(1)} kg`;
+                weightConvText = `You are currently <strong class="text-blue-600">${displayDiff}</strong> above your healthy zone. A safe timeline to reach this goal is about ${weeks} weeks.`;
+            } else {
+                weightConvText = `You are sitting <strong class="text-blue-600">perfectly</strong> inside your healthy weight zone! Your main goal is simply to maintain this balance.`;
+            }
+
+            let fatStatus = metrics.bodyFat < 15 
+                ? "lean" 
+                : (metrics.bodyFat < 24 
+                    ? "within a healthy range" 
+                    : "above the recommended range");
+
+            let fatConvText = `Your estimated body fat level is <strong class="text-purple-600">${fatStatus}</strong>. This gives a better idea of your overall body composition beyond BMI.`;
+            let bmrConvText = `Even at complete rest, your body needs around <strong class="text-orange-600">${metrics.bmr} calories</strong> per day to keep essential functions like breathing and circulation running.`;
+
+            let limitationText = "";
+            if (metrics.bodyFat < 15 && metrics.bmi >= 25) {
+                limitationText = "<div class='mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-xl'><p class='text-sm text-yellow-800 font-medium'><i class='fas fa-info-circle mr-1'></i> <strong>Clinical Note:</strong> Your BMI indicates overweight, but your estimated body fat is low. This suggests high muscle mass rather than excess fat.</p></div>";
+            } else if ((metrics.bodyFat > 25 && inputs.gender === 'male' && metrics.bmi < 25) || (metrics.bodyFat > 32 && inputs.gender === 'female' && metrics.bmi < 25)) {
+                limitationText = "<div class='mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-xl'><p class='text-sm text-yellow-800 font-medium'><i class='fas fa-info-circle mr-1'></i> <strong>Clinical Note:</strong> Your BMI is normal, but your body fat percentage is elevated. Focus on strength training to improve body composition.</p></div>";
+            }
+
+            let category, pulseClass, badgeColor, riskText, wisdomHtml, calTarget, calMarkerPos, triviaText, tdeeConvText;
+
+            // Neutral, clean styling for the quick diet tip so it doesn't clash with the vibrant cards
+            const neutralTipBox = (icon, colorClass, text) => `
+                <div class="mb-8 p-5 bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm">
+                    <p class="font-extrabold text-gray-800 text-sm uppercase tracking-widest mb-2"><i class="${icon} ${colorClass} mr-2"></i> Quick Diet Tip</p>
+                    <p class="text-gray-700 font-medium text-sm leading-relaxed">${text}</p>
+                </div>
+            `;
+
+            if (metrics.bmi < 18.5) {
+                category = "Underweight"; pulseClass = "rhythm-alert-blue"; badgeColor = "bg-blue-600";
+                riskText = "<i class='fas fa-exclamation-triangle'></i> Low Energy Risk";
+                calTarget = metrics.tdee + 300; calMarkerPos = 85; 
+                tdeeConvText = `Based on your activity level, your body uses about ${metrics.tdee} calories per day. Increasing your intake to around <strong class="text-blue-600">${calTarget} calories</strong> can help you gain weight steadily.`;
+                triviaText = "Around 8.8% of the global adult population falls into the underweight category. Building lean muscle mass is statistically one of the most effective ways to safely increase your BMI while vastly improving longevity and bone density.";
+                wisdomHtml = 
+                    neutralTipBox('fas fa-bolt', 'text-blue-500', 'To gain healthy mass, add calorie-dense whole foods like peanut butter, avocados, olive oil, and nuts to your daily meals rather than junk food.') +
+                    `<div class="grid md:grid-cols-2 gap-8">
+                        <div class="bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
+                            <p class="font-bold text-blue-900 mb-3 text-xl"><i class="fas fa-microscope text-blue-500 mr-2"></i> The Analysis</p>
+                            <p>Your BMI is below the recommended range. This can indicate low energy reserves, meaning your body may lack the necessary fuel to build and maintain healthy bone, muscle, and immune function.</p>
+                        </div>
+                        <div class="bg-gray-50/50 p-6 rounded-2xl border border-gray-200">
+                            <p class="font-bold text-gray-900 mb-4 text-xl"><i class="fas fa-map-signs text-gray-600 mr-2"></i> Action Steps</p>
+                            <div class="space-y-4">
+                                <div><p class="font-bold text-gray-800 text-sm uppercase tracking-wider mb-1"><i class="fas fa-utensils text-blue-500"></i> Nutrition</p><p class="text-sm font-medium">Consume an extra 300 calories daily of nutrient-dense foods (like nuts, avocados, and complex carbs) rather than refined sugars.</p></div>
+                                <div><p class="font-bold text-gray-800 text-sm uppercase tracking-wider mb-1"><i class="fas fa-dumbbell text-blue-500"></i> Movement</p><p class="text-sm font-medium">Begin a structured strength training regimen 3x a week to ensure weight gained becomes metabolically active muscle.</p></div>
+                                <div><p class="font-bold text-gray-800 text-sm uppercase tracking-wider mb-1"><i class="fas fa-bed text-blue-500"></i> Recovery</p><p class="text-sm font-medium">Sleep 7-8 hours daily to allow growth hormones to naturally regulate tissue repair.</p></div>
+                            </div>
+                        </div>
+                    </div>` + limitationText;
+            } else if (metrics.bmi < 25) {
+                category = "Healthy Range"; pulseClass = "rhythm-healthy"; badgeColor = "bg-green-600";
+                riskText = "<i class='fas fa-shield-alt'></i> Low Health Risk";
+                calTarget = metrics.tdee; calMarkerPos = 50; 
+                tdeeConvText = `Based on your activity level, your body uses about ${metrics.tdee} calories per day. Consuming around <strong class="text-green-600">${calTarget} calories</strong> will help you maintain your current weight.`;
+                triviaText = "You are in the optimal zone! Only about 39% of adults globally maintain a BMI in this range. Your body is operating in its most mechanically and metabolically efficient state.";
+                wisdomHtml = 
+                    neutralTipBox('fas fa-leaf', 'text-green-500', 'You are in maintenance! Focus on getting enough daily protein (0.8g-1g per pound of body weight) to preserve your muscle mass while enjoying a balanced diet.') +
+                    `<div class="grid md:grid-cols-2 gap-8">
+                        <div class="bg-green-50/50 p-6 rounded-2xl border border-green-100">
+                            <p class="font-bold text-green-900 mb-3 text-xl"><i class="fas fa-microscope text-green-500 mr-2"></i> The Analysis</p>
+                            <p>Excellent work. Your mass-to-height ratio is perfectly aligned, which is statistically associated with a much lower risk of metabolic and cardiovascular conditions over time.</p>
+                        </div>
+                        <div class="bg-gray-50/50 p-6 rounded-2xl border border-gray-200">
+                            <p class="font-bold text-gray-900 mb-4 text-xl"><i class="fas fa-map-signs text-gray-600 mr-2"></i> Action Steps</p>
+                            <div class="space-y-4">
+                                <div><p class="font-bold text-gray-800 text-sm uppercase tracking-wider mb-1"><i class="fas fa-utensils text-green-500"></i> Nutrition</p><p class="text-sm font-medium">Eat near your maintenance calories (${calTarget} kcal) to effortlessly sustain your current state while ensuring adequate protein intake.</p></div>
+                                <div><p class="font-bold text-gray-800 text-sm uppercase tracking-wider mb-1"><i class="fas fa-dumbbell text-green-500"></i> Movement</p><p class="text-sm font-medium">Shift your focus from scale weight to athletic performance or strength benchmarks.</p></div>
+                                <div><p class="font-bold text-gray-800 text-sm uppercase tracking-wider mb-1"><i class="fas fa-bed text-green-500"></i> Recovery</p><p class="text-sm font-medium">Protect your progress by prioritizing 7-8 hours of quality sleep to prevent stress-induced fat storage.</p></div>
+                            </div>
+                        </div>
+                    </div>` + limitationText;
+            } else if (metrics.bmi < 30) {
+                category = "Overweight"; pulseClass = "rhythm-moderate"; badgeColor = "bg-orange-600";
+                riskText = "<i class='fas fa-exclamation-circle'></i> Moderate Risk";
+                calTarget = metrics.tdee - 400; calMarkerPos = 20; 
+                tdeeConvText = `Based on your activity level, your body uses about ${metrics.tdee} calories per day. Reducing your intake to around <strong class="text-orange-600">${calTarget} calories</strong> can support gradual fat loss.`;
+                triviaText = "You are not alone in this tier—nearly 39% of the global adult population falls into this category. Small behavioral changes, like reducing liquid calories, often yield the fastest initial results.";
+                wisdomHtml = 
+                    neutralTipBox('fas fa-apple-alt', 'text-orange-500', 'To lose weight smoothly, cut out liquid calories (sodas, juices) and increase your daily fiber (beans, veggies) to stay full on fewer calories.') +
+                    `<div class="grid md:grid-cols-2 gap-8">
+                        <div class="bg-orange-50/50 p-6 rounded-2xl border border-orange-100">
+                            <p class="font-bold text-orange-900 mb-3 text-xl"><i class="fas fa-microscope text-orange-500 mr-2"></i> The Analysis</p>
+                            <p>Your BMI is above the recommended range. Carrying excess weight over time may increase health risks, but gradual, consistent lifestyle adjustments can effectively and safely improve your numbers.</p>
+                        </div>
+                        <div class="bg-gray-50/50 p-6 rounded-2xl border border-gray-200">
+                            <p class="font-bold text-gray-900 mb-4 text-xl"><i class="fas fa-map-signs text-gray-600 mr-2"></i> Action Steps</p>
+                            <div class="space-y-4">
+                                <div><p class="font-bold text-gray-800 text-sm uppercase tracking-wider mb-1"><i class="fas fa-utensils text-orange-500"></i> Nutrition</p><p class="text-sm font-medium">Target a slight, sustainable caloric deficit of 300-400 kcal per day. Focus on high-fiber foods to stay full.</p></div>
+                                <div><p class="font-bold text-gray-800 text-sm uppercase tracking-wider mb-1"><i class="fas fa-walking text-orange-500"></i> Movement</p><p class="text-sm font-medium">Increase NEAT (Non-Exercise Activity Thermogenesis) by organically walking 8,000 steps a day.</p></div>
+                                <div><p class="font-bold text-gray-800 text-sm uppercase tracking-wider mb-1"><i class="fas fa-brain text-orange-500"></i> Mindset</p><p class="text-sm font-medium">Focus on long-term consistency over fast results. Drink plenty of water daily to prevent false hunger signals.</p></div>
+                            </div>
+                        </div>
+                    </div>` + limitationText;
+            } else {
+                category = "Obese"; pulseClass = "rhythm-alert-red"; badgeColor = "bg-red-600";
+                riskText = "<i class='fas fa-exclamation-triangle'></i> Elevated Health Risk";
+                calTarget = metrics.tdee - 600; calMarkerPos = 10; 
+                tdeeConvText = `Based on your activity level, your body uses about ${metrics.tdee} calories per day. A daily intake near <strong class="text-red-600">${calTarget} calories</strong> can help you lose weight in a steady and sustainable way.`;
+                triviaText = "Around 13% of the global population is in this category. The human body is remarkably adaptable—even a relatively small 5% reduction in overall body weight can drastically improve blood pressure and joint health.";
+                wisdomHtml = 
+                    neutralTipBox('fas fa-utensils', 'text-red-500', 'Do not crash diet. Focus entirely on lean proteins (chicken, fish, tofu) and large volumes of vegetables to prevent binge eating while staying in a calorie deficit.') +
+                    `<div class="grid md:grid-cols-2 gap-8">
+                        <div class="bg-red-50/50 p-6 rounded-2xl border border-red-100">
+                            <p class="font-bold text-red-900 mb-3 text-xl"><i class="fas fa-microscope text-red-500 mr-2"></i> The Analysis</p>
+                            <p>Your BMI is in a higher range associated with increased health risks. However, the body is highly adaptable, and consistent, manageable steps will significantly improve your cardiovascular and metabolic health.</p>
+                        </div>
+                        <div class="bg-gray-50/50 p-6 rounded-2xl border border-gray-200">
+                            <p class="font-bold text-gray-900 mb-4 text-xl"><i class="fas fa-map-signs text-gray-600 mr-2"></i> Action Steps</p>
+                            <div class="space-y-4">
+                                <div><p class="font-bold text-gray-800 text-sm uppercase tracking-wider mb-1"><i class="fas fa-utensils text-red-500"></i> Nutrition</p><p class="text-sm font-medium">Do not crash diet. Consume your target calories by strictly focusing on high-protein, satiating meals to prevent binge cycles.</p></div>
+                                <div><p class="font-bold text-gray-800 text-sm uppercase tracking-wider mb-1"><i class="fas fa-swimmer text-red-500"></i> Movement</p><p class="text-sm font-medium">Focus entirely on low-impact activities like swimming or cycling. Protect your knees while burning calories.</p></div>
+                                <div><p class="font-bold text-gray-800 text-sm uppercase tracking-wider mb-1"><i class="fas fa-bed text-red-500"></i> Recovery</p><p class="text-sm font-medium">Ensure quality, uninterrupted sleep to reduce cortisol and support your body's recovery systems.</p></div>
+                            </div>
+                        </div>
+                    </div>` + limitationText;
+            }
+
+            return {
+                weightDisplayStr, weightConvText, fatConvText, bmrConvText, tdeeConvText,
+                category, pulseClass, badgeColor, riskText, wisdomHtml, calTarget, calMarkerPos, triviaText
+            };
+        }
+
+        // --- 6. Core Logic: UI Updates ---
+        function updateDashboardUI(metrics, content, dashboard) {
+            document.getElementById('idealWeightVal').textContent = content.weightDisplayStr;
+            document.getElementById('weightConversational').innerHTML = content.weightConvText;
+            document.getElementById('fatConversational').innerHTML = content.fatConvText;
+            document.getElementById('bmrConversational').innerHTML = content.bmrConvText;
+            document.getElementById('tdeeConversational').innerHTML = content.tdeeConvText;
+            document.getElementById('triviaContent').textContent = content.triviaText;
+            document.getElementById('wisdomContent').innerHTML = content.wisdomHtml;
+            
+            const badge = document.getElementById('categoryBadge');
+            badge.textContent = content.category;
+            badge.className = `px-6 py-2 rounded-full text-md font-bold text-white shadow-lg uppercase tracking-widest border-2 border-white ${content.badgeColor}`;
+            
+            const riskElem = document.getElementById('riskText');
+            riskElem.innerHTML = content.riskText;
+            if (metrics.bmi < 18.5) riskElem.className = "text-md font-bold bg-white/90 px-5 py-2 rounded-full shadow-sm text-blue-600 border border-blue-100";
+            else if (metrics.bmi < 25) riskElem.className = "text-md font-bold bg-white/90 px-5 py-2 rounded-full shadow-sm text-green-600 border border-green-100";
+            else if (metrics.bmi < 30) riskElem.className = "text-md font-bold bg-white/90 px-5 py-2 rounded-full shadow-sm text-orange-600 border border-orange-100";
+            else riskElem.className = "text-md font-bold bg-white/90 px-5 py-2 rounded-full shadow-sm text-red-600 border border-red-100";
+
+            dashboard.classList.remove('hidden');
+            const items = document.querySelectorAll('.stagger-item');
+            items.forEach(item => item.classList.remove('show'));
+
+            setTimeout(() => {
+                items.forEach((item, index) => {
+                    setTimeout(() => item.classList.add('show'), index * 100); 
+                });
+            }, 50);
+
+            animateValue("bmiValueDisplay", 0, metrics.bmi, 1200, true);
+            animateValue("bodyFatVal", 0, metrics.bodyFat, 1200, true);
+            animateValue("bmrVal", 0, metrics.bmr, 1200, false);
+            animateValue("tdeeVal", 0, metrics.tdee, 1200, false);
+
+            setTimeout(() => {
+                document.getElementById('svgNeedle').setAttribute('transform', `rotate(${metrics.gaugeDegrees - 90} 100 100)`);
+                
+                const zoneHighlight = document.getElementById('idealZoneHighlight');
+                zoneHighlight.style.left = `${metrics.idealZoneStartPct}%`;
+                zoneHighlight.style.width = `${metrics.idealZoneWidthPct}%`;
+                document.getElementById('currentWeightMarker').style.left = `${metrics.currentWeightPct}%`;
+                
+                document.getElementById('fatBarFill').style.width = `${(metrics.bodyFat / 50) * 100}%`;
+
+                const bmrPercentage = (metrics.bmr / metrics.tdee) * 100;
+                document.getElementById('bmrBarFill').style.width = `${bmrPercentage}%`;
+                
+                document.getElementById('calorieMarker').style.left = `${content.calMarkerPos}%`;
+            }, 150);
+
+            const pulseOverlay = document.getElementById('pulseOverlay');
+            pulseOverlay.className = "pulse-overlay"; 
+            void pulseOverlay.offsetWidth; 
+            pulseOverlay.classList.add(content.pulseClass); 
+
+            setTimeout(() => dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+        }
+
+        // --- 7. Main Event Listener ---
+        document.getElementById('bmiForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const dashboard = document.getElementById('resultsDashboard');
+            
+            // Calculation happens instantly with no artificial delays
+            const inputs = getValidatedInputs();
+            if (!inputs) {
+                alert("Please provide valid height and weight values."); 
+                return; 
+            }
+
+            const metrics = calculateMetrics(inputs);
+            const content = generateDashboardContent(inputs, metrics);
+            updateDashboardUI(metrics, content, dashboard);
+        });
+    </script>
+</body>
+</html>
