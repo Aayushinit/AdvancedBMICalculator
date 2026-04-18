@@ -10,7 +10,7 @@ An advanced **client-side Health Analysis Dashboard** that goes beyond basic BMI
 ## 🌐 Live Demo
 
 🚀 Try the hosted version here:  
-👉 [Live Health Metrics Calculator](YOUR_HOSTED_LINK_HERE)
+👉 [Live Health Metrics Calculator](https://aayushinit.github.io/HealthMetricsCalculator/)
 
 > No installation needed — runs instantly in your browser.
 
@@ -286,7 +286,7 @@ Each category includes:
 
 Use the hosted version directly in your browser:
 
-👉 [Live Health Metrics Calculator](YOUR_HOSTED_LINK_HERE)
+👉 [Live Health Metrics Calculator](https://aayushinit.github.io/HealthMetricsCalculator/)
 
 ---
 
